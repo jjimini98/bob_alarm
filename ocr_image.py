@@ -8,12 +8,11 @@ from tqdm import tqdm
 from collections import defaultdict
 load_dotenv(verbose=True) 
 
-
-API  = os.getenv("INVOKE_URL")
-SECRETKEY = os.getenv("SECERT_KEY")
-
-
 class OCR:
+    def __init__(self):
+        self.API  = os.getenv("INVOKE_URL")
+        self.SECRETKEY = os.getenv("SECERT_KEY")
+
     def request_img(self, img : str) -> str: 
         """
         clova ocr API 요청 보내기 
@@ -35,10 +34,10 @@ class OCR:
         ('file', open(img,'rb'))
         ]
         headers = {
-        'X-OCR-SECRET': SECRETKEY
+        'X-OCR-SECRET': self.SECRETKEY
         }
 
-        response = requests.request("POST", API, headers=headers, data = payload, files = files)
+        response = requests.request("POST", self.API, headers=headers, data = payload, files = files)
 
         return response.text        
 
