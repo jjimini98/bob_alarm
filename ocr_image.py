@@ -104,22 +104,7 @@ class OCR:
 
 
 if __name__ == "__main__":
-    # 여기서 이미지를 직접 넣어준다 
     filename = "test_image/test1.JPG"
     ocr = OCR(filename)
     print(ocr.split_lunch_dinner())
-    # 하나만 
-    # res = ocr.request_img(f"test_image/test1.JPG")
-    # ees = ocr.extract_response(res)
-    # menu = ocr.split_data(ees)
-    # ocr.convert_json(menu, "test1")
-    # 여러 개 
-    # for img in tqdm(os.listdir("test_image")):
-    #     if img != ".DS_Store":
-    #         imgname = img.split(".")[0]
-    #         res = ocr.request_img(f"test_image/{imgname}.JPG")
-    #         ees = ocr.extract_response(res)
-    #         menu = ocr.split_data(ees)
-    #         ocr.convert_json(menu, imgname)
-
 
