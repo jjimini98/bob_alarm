@@ -59,13 +59,22 @@ class OCR:
 
         for k,v in extract_data.items():
             split_dict = dict()
+            date = v[:4] # ocr 결과에서 날짜만 
+            if int(date[0:1]) < 10:
+                date =  "0" + date
+
             if "그린샐러드&드레싱\n" in v : 
-                split_dict["점심"] = v.split("그린샐러드&드레싱\n")[0]
-                split_dict["저녁"] = v.split("그린샐러드&드레싱\n")[1]
+                lunch = v.split("그린샐러드&드레싱\n")[0]
+                split_dict[k+" 점심"] = lunch[9:]
+                split_dict[k+" 저녁"] = v.split("그린샐러드&드레싱\n")[1]
             elif "바나나\n" in v:
-                split_dict["점심"] = v.split("바나나\n")[0]
-                split_dict["저녁"] = v.split("바나나\n")[1]
-            weekly_menu[k] = split_dict
+                lunch = v.split("그린샐러드&드레싱\n")[0]
+                split_dict[k+" 점심"] = lunch[9:]
+                split_dict[k+" 저녁"] = v.split("바나나\n")[1]
+            else:
+                split_dict[k+" 점심"] = "없음"
+                split_dict[k+" 저녁"] = "없음"
+            weekly_menu[date] = split_dict
         
 
         return weekly_menu    
@@ -81,12 +90,18 @@ class OCR:
 if __name__ == "__main__":
     # 여기서 이미지를 직접 넣어준다 
     ocr = OCR()
-    for img in tqdm(os.listdir("test_image")):
-        if img != ".DS_Store":
-            imgname = img.split(".")[0]
-            res = ocr.request_img(f"test_image/{imgname}.JPG")
-            ees = ocr.extract_response(res)
-            menu = ocr.split_data(ees)
-            ocr.convert_json(menu, imgname)
+    # 하나만 
+    res = ocr.request_img(f"test_image/test1.JPG")
+    ees = ocr.extract_response(res)
+    menu = ocr.split_data(ees)
+    ocr.convert_json(menu, "test1")
+    # 여러 개 
+    # for img in tqdm(os.listdir("test_image")):
+    #     if img != ".DS_Store":
+    #         imgname = img.split(".")[0]
+    #         res = ocr.request_img(f"test_image/{imgname}.JPG")
+    #         ees = ocr.extract_response(res)
+    #         menu = ocr.split_data(ees)
+    #         ocr.convert_json(menu, imgname)
 
 
