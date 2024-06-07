@@ -9,11 +9,12 @@ from collections import defaultdict
 load_dotenv(verbose=True) 
 
 class OCR:
-    def __init__(self):
+    def __init__(self,img):
+        self.image = img
         self.API  = os.getenv("INVOKE_URL")
         self.SECRETKEY = os.getenv("SECERT_KEY")
 
-    def request_img(self, img : str) -> str: 
+    def request_image(self) -> str: 
         """
         clova ocr API 요청 보내기 
         """
@@ -31,7 +32,7 @@ class OCR:
 
         payload = {'message': json.dumps(request_json).encode('UTF-8')}
         files = [
-        ('file', open(img,'rb'))
+        ('file', open(self.image,'rb'))
         ]
         headers = {
         'X-OCR-SECRET': self.SECRETKEY
@@ -42,59 +43,76 @@ class OCR:
         return response.text        
 
 
-    def extract_response(self,result : str):
-        result = json.loads(result)  #str을 dict로 변경 
-        extract = dict()
-        ocr_result = result.get("images")[0]
-        daily_bob = ocr_result.get("fields")
-        for daily in daily_bob:
-            text = daily.get("inferText")
-            extract[daily.get("name")] = text 
+    def transform_result(self):
+        """
+        인식된 결과를 {요일 : 메뉴} 의 형태로 리턴해준다. 
+        """
+        # str -> dict 
+        result = json.loads(self.request_image()) 
+        weekly_menu = dict()
 
-        return extract
+        extract_result = result['images'][0]["fields"]
+        for result in extract_result:
+            weekday = result['name']
+            menu = result['inferText']
+            weekly_menu[weekday] = menu
+
+        return weekly_menu
     
 
-    def split_data(self,extract_data : dict):
+    def convert_datetime(self,datetime):
+        """
+        날짜의 달과 일을 항상 두자리 수로 맞춰줌
+        """
+        month, date = map(int,datetime.split("/"))
+        if month < 10 and date > 10:
+            return "0" + str(month) + "/" + str(date)
+        elif month < 10 and date < 10: 
+            return "0" + str(month) + "/" + "0" + str(date)
+        elif month > 10 and date > 10:
+            return str(month) + "/" + str(date)
+        else: 
+            return str(month) + "/" + "0" +str(date)
+        
+
+
+    def split_lunch_dinner(self):
+        """
+        기준을 가지고 요일별 점심,저녁 메뉴를 나눈다.
+        """
+        total_menu = self.transform_result()
         weekly_menu = defaultdict(dict)
 
-        for k,v in extract_data.items():
-            split_dict = dict()
-            date = v[:4] # ocr 결과에서 날짜만 
-            if int(date[0:1]) < 10:
-                date =  "0" + date
-
-            if "그린샐러드&드레싱\n" in v : 
-                lunch = v.split("그린샐러드&드레싱\n")[0]
-                split_dict[k+" 점심"] = lunch[9:]
-                split_dict[k+" 저녁"] = v.split("그린샐러드&드레싱\n")[1]
-            elif "바나나\n" in v:
-                lunch = v.split("그린샐러드&드레싱\n")[0]
-                split_dict[k+" 점심"] = lunch[9:]
-                split_dict[k+" 저녁"] = v.split("바나나\n")[1]
+        for day , menu in total_menu.items():
+            daydict = dict()
+            datetime = self.convert_month(menu[:4])
+            day = datetime + " " + day
+            if "그린샐러드&드레싱\n" in menu : 
+                lunch = menu.split("그린샐러드&드레싱\n")[0]
+                daydict[day+" 점심"] = lunch[9:]
+                daydict[day+" 저녁"] = menu.split("그린샐러드&드레싱\n")[1]
+            elif "바나나\n" in menu:
+                lunch = menu.split("바나나\n")[0]
+                daydict[day+" 점심"] = lunch[9:]
+                daydict[day+" 저녁"] = menu.split("바나나\n")[1]
             else:
-                split_dict[k+" 점심"] = "없음"
-                split_dict[k+" 저녁"] = "없음"
-            weekly_menu[date] = split_dict
+                daydict[day+" 점심"] = "없음"
+                daydict[day+" 저녁"] = "없음"
+            weekly_menu[day] = daydict
         
-
         return weekly_menu    
-
-    def convert_json(self, menu : dict , img_name : str) : 
-        with open(f'./test_result/{img_name}.json','w') as f:
-                json.dump(menu, f, ensure_ascii=False, indent=4)
-        
-        print(f"==================={img_name} 변환 완료===================")
-
 
 
 if __name__ == "__main__":
     # 여기서 이미지를 직접 넣어준다 
-    ocr = OCR()
+    filename = "test_image/test1.JPG"
+    ocr = OCR(filename)
+    print(ocr.split_lunch_dinner())
     # 하나만 
-    res = ocr.request_img(f"test_image/test1.JPG")
-    ees = ocr.extract_response(res)
-    menu = ocr.split_data(ees)
-    ocr.convert_json(menu, "test1")
+    # res = ocr.request_img(f"test_image/test1.JPG")
+    # ees = ocr.extract_response(res)
+    # menu = ocr.split_data(ees)
+    # ocr.convert_json(menu, "test1")
     # 여러 개 
     # for img in tqdm(os.listdir("test_image")):
     #     if img != ".DS_Store":
