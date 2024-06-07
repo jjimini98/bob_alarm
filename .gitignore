@@ -3,3 +3,6 @@
 /test_image
 *.json
 /test_result
+/refine_result
+/.venv
+__pycache__
