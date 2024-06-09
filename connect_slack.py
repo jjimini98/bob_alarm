@@ -5,93 +5,89 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
-import json 
-import datetime
+from transform_menu import Transformation
+from datetime import datetime , timedelta, time
+# import datetime
 import logging
+import asyncio
 logger = logging.getLogger(__name__)
 
-channel_id = os.getenv("CHANNEL_ID")
-client = WebClient(token=os.environ.get("BOT_TOKEN"))
 
-def calculate_datetime(date : str):
-    # 현재 날짜를 구합니다.
-    current_date = datetime.datetime.now().date()
-    date_with_year = f"{current_date.year}/{date}"
-    target_date = datetime.datetime.strptime(date_with_year, "%Y/%m/%d").date()
-    date_difference = target_date - current_date
-
-    return date_difference.days
-
-def transform_menu(file : str):
-    global lunch_menu 
-    global dinner_menu
-    lunch_menu = dict()
-    dinner_menu = dict()
-
-    with open(file, "r") as f: 
-        file = json.load(f)
-
-    for key,value in file.items():
-        for k,v in value.items():
-            if "점심" in k : 
-                lunch_menu[key + ' ' + k] = v
-            elif "저녁" in k : 
-                dinner_menu[key + ' ' + k] = v
-
-    return lunch_menu, dinner_menu
+class ConnectSlack:
+    def __init__(self,file):
+        self.channel_id = os.getenv("CHANNEL_ID")
+        self.client = WebClient(token=os.environ.get("BOT_TOKEN"))
+        self.ocr_result = Transformation(file).split_lunch_dinner()
 
 
-def alert_lunch(input_date : str):
-    for d, m  in lunch_menu.items():
-        if input_date in d: 
-            num = calculate_datetime(input_date)
-            reserve_date = datetime.date.today() + datetime.timedelta(days=num)
-            # reserve_date = datetime.date.today()
-            scheduled_time = datetime.time(hour=10, minute=00)
-            schedule_timestamp = datetime.datetime.combine(reserve_date, scheduled_time).strftime('%s')
+    def search_date(self, spec_date):
+        result = [] 
+        today = datetime.today().date() 
+        today_year = str(datetime.today().year)
+        for day , menu in self.ocr_result.items():
+            if spec_date in day: 
+                date = day.split(" ")[0]
+                date = today_year + "/" + date
+                date = datetime.strptime(date, "%Y/%m/%d").date()
+                diff = (date - today).days
+                result.append({day:menu})
+ 
+        return diff, result 
+            
+    def alert_lunch(self,spec_date):
+        diff, today_menu = self.search_date(spec_date)
+        reserve_date = datetime.today() + timedelta(days=diff)
+        for today in today_menu:
+            for date, menu in today.items():
+                if "점심" in date: 
+                    text = "========================" + "\n" + date + "\n"+ "========================" + "\n" + menu
+                    lunch = time(hour=10, minute=00)
+                    lunch_timestamp = datetime.combine(reserve_date,lunch).strftime('%s')
 
-            try:
-                # Call the chat.scheduleMessage method using the WebClient
-                result = client.chat_scheduleMessage(
-                    channel=channel_id,
-                    text= "==============================\n"+ d+ "\n==============================\n" + m,
-                    post_at=schedule_timestamp
-                )
-                # Log the result
-                logger.info(result)
+                    lunch_result = self.client.chat_scheduleMessage(
+                            channel = self.channel_id,
+                            text = text,
+                            post_at=lunch_timestamp
+                                        )
+                    logger.info(lunch_result)
+        print( "======================== " + spec_date + " lunch reserved"+ "========================")
 
-            except SlackApiError as e:
-                logger.error("Error scheduling message: {}".format(e))
+        
+    def alert_dinner(self,spec_date):
+        diff, today_menu = self.search_date(spec_date)
+        reserve_date = datetime.today() + timedelta(days=diff)
+        for today in today_menu:
+            for date, menu in today.items():
+                if "저녁" in date: 
+                    text = "========================" + "\n" + date + "\n"+ "========================" + "\n" + menu
 
-def alert_dinner(input_date : str):
-    for d, m  in dinner_menu.items():
-        if input_date in d: 
-            num = calculate_datetime(input_date)
-            reserve_date = datetime.date.today() + datetime.timedelta(days=num)
-            # reserve_date = datetime.date.today()
-            scheduled_time = datetime.time(hour=16, minute=00)
-            schedule_timestamp = datetime.datetime.combine(reserve_date, scheduled_time).strftime('%s')
+                    dinner = time(hour=16, minute=00)
+                    dinner_timestamp = datetime.combine(reserve_date,dinner).strftime('%s')
 
-            try:
-                # Call the chat.scheduleMessage method using the WebClient
-                result = client.chat_scheduleMessage(
-                    channel=channel_id,
-                    text= "==============================\n"+ d+ "\n==============================\n" + m,
-                    post_at=schedule_timestamp
-                )
-                # Log the result
-                logger.info(result)
+                    dinner_result = self.client.chat_scheduleMessage(
+                            channel = self.channel_id,
+                            text = text,
+                            post_at=dinner_timestamp
+                                        )
+                    logger.info(dinner_result)
+        print( "======================== " + spec_date + " dinner reserved"+ "========================")
 
-            except SlackApiError as e:
-                logger.error("Error scheduling message: {}".format(e))
+
+
 
 if __name__ == "__main__":
+    conn = ConnectSlack("test")
+    conn.alert_lunch("06/10")
+    conn.alert_dinner("06/10")
 
-    filename = "test_result/test1.json"
-    transform_menu(filename)
-    alert_lunch("06/07")
-    alert_dinner("o6/07")
+    conn.alert_lunch("06/11")
+    conn.alert_dinner("06/11")
 
-    # print(calculate_datetime("06/07"))
-    # print(transform_menu("test_result/test1.json"))
+    conn.alert_lunch("06/12")
+    conn.alert_dinner("06/12")
 
+    conn.alert_lunch("06/13")
+    conn.alert_dinner("06/13")
+
+    conn.alert_lunch("06/14")
+    conn.alert_dinner("06/14")
