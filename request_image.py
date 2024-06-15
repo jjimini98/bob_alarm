@@ -74,6 +74,6 @@ class Request:
 
 
 if __name__ == "__main__":
-    ocr = Request("test_image/test.png")
-    ocr.convert_json("test")
+    ocr = Request("test_image/test18.png")
+    ocr.convert_json("test18")
     

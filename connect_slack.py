@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 class ConnectSlack:
     def __init__(self,file):
         self.channel_id = os.getenv("CHANNEL_ID")
+        # self.channel_id = os.getenv("TEST_CHANNEL_ID")
         self.client = WebClient(token=os.environ.get("BOT_TOKEN"))
         self.ocr_result = Transformation(file).split_lunch_dinner()
 
@@ -34,60 +35,72 @@ class ConnectSlack:
  
         return diff, result 
             
+    def alert(self,spec_date):
+        diff, today_menu = self.search_date(spec_date)
+        reserve_date = datetime.today() + timedelta(days=diff) #diff로 바꿔야함 
+        for today in today_menu:
+            for date, menu in today.items(): 
+                text = "*:선글라스거북:"  + date +  ":선글라스거북:*" + "\n\n" + menu
+                reserve_time = time(hour=8, minute=00)
+                timestamp = datetime.combine(reserve_date,reserve_time).strftime('%s')
+                result = self.client.chat_scheduleMessage(
+                            channel = self.channel_id,
+                            text = text,
+                            post_at=timestamp
+                                        )
+                logger.info(result)
+
+
     def alert_lunch(self,spec_date):
-        diff, today_menu = self.search_date(spec_date)
-        reserve_date = datetime.today() + timedelta(days=diff)
-        for today in today_menu:
-            for date, menu in today.items():
-                if "점심" in date: 
-                    text = "========================" + "\n" + date + "\n"+ "========================" + "\n" + menu
-                    lunch = time(hour=10, minute=00)
-                    lunch_timestamp = datetime.combine(reserve_date,lunch).strftime('%s')
-
-                    lunch_result = self.client.chat_scheduleMessage(
+        diff, _ = self.search_date(spec_date)
+        reserve_date = datetime.today() + timedelta(days=diff) #diff로 바꿔야함 
+        text = "*:파티댄스: "  + "해피 점심시간" +  " :파티댄스:*" 
+        reserve_time = time(hour=12, minute=10)
+        timestamp = datetime.combine(reserve_date,reserve_time).strftime('%s')
+        result = self.client.chat_scheduleMessage(
                             channel = self.channel_id,
                             text = text,
-                            post_at=lunch_timestamp
+                            post_at=timestamp
                                         )
-                    logger.info(lunch_result)
-        print( "======================== " + spec_date + " lunch reserved"+ "========================")
+        logger.info(result)
 
-        
     def alert_dinner(self,spec_date):
-        diff, today_menu = self.search_date(spec_date)
-        reserve_date = datetime.today() + timedelta(days=diff)
-        for today in today_menu:
-            for date, menu in today.items():
-                if "저녁" in date: 
-                    text = "========================" + "\n" + date + "\n"+ "========================" + "\n" + menu
-
-                    dinner = time(hour=16, minute=00)
-                    dinner_timestamp = datetime.combine(reserve_date,dinner).strftime('%s')
-
-                    dinner_result = self.client.chat_scheduleMessage(
+        diff, _ = self.search_date(spec_date)
+        reserve_date = datetime.today() + timedelta(days=diff) #diff로 바꿔야함 
+        text = "*:파티댄스:"  + "해피 저녁시간" +  ":파티댄스:*" 
+        reserve_time = time(hour=18, minute=00)
+        timestamp = datetime.combine(reserve_date,reserve_time).strftime('%s')
+        result = self.client.chat_scheduleMessage(
                             channel = self.channel_id,
                             text = text,
-                            post_at=dinner_timestamp
+                            post_at=timestamp
                                         )
-                    logger.info(dinner_result)
-        print( "======================== " + spec_date + " dinner reserved"+ "========================")
+        logger.info(result)
 
+    
 
 
 
 if __name__ == "__main__":
-    conn = ConnectSlack("test")
-    conn.alert_lunch("06/10")
-    conn.alert_dinner("06/10")
+    conn = ConnectSlack("test18")
+    
 
-    conn.alert_lunch("06/11")
-    conn.alert_dinner("06/11")
+    conn.alert("06/17")
+    conn.alert_lunch("06/17")
+    conn.alert_dinner("06/17")
 
-    conn.alert_lunch("06/12")
-    conn.alert_dinner("06/12")
+    conn.alert("06/18")
+    conn.alert_lunch("06/18")
+    conn.alert_dinner("06/18")
 
-    conn.alert_lunch("06/13")
-    conn.alert_dinner("06/13")
+    conn.alert("06/19")
+    conn.alert_lunch("06/19")
+    conn.alert_dinner("06/19")
 
-    conn.alert_lunch("06/14")
-    conn.alert_dinner("06/14")
+    conn.alert("06/20")
+    conn.alert_lunch("06/20")
+    conn.alert_dinner("06/20")
+
+    conn.alert("06/21")
+    conn.alert_lunch("06/21")
+    conn.alert_dinner("06/21")

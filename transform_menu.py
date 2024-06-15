@@ -50,50 +50,7 @@ class Transformation:
 
 
 
-    # def split_lunch_dinner(self):
-    #     """
-    #     기준을 가지고 요일별 점심,저녁 메뉴를 나눈다.
-    #     """
-    #     total_menu = self.transform_result()
-    #     daydict = dict()
-
-    #     for day , menu in total_menu.items():
-    #         datetime = self.convert_datetime(menu[:4])
-    #         day = datetime + " " + day
-    #         if "그린샐러드&드레싱\n" in menu : 
-    #             lunch = menu.split("그린샐러드&드레싱\n")[0]
-    #             daydict[day+" 점심"] = lunch[9:]
-    #             daydict[day+" 저녁"] = menu.split("그린샐러드&드레싱\n")[1]
-    #         elif "바나나\n" in menu:
-    #             lunch = menu.split("바나나\n")[0]
-    #             daydict[day+" 점심"] = lunch[9:]
-    #             daydict[day+" 저녁"] = menu.split("바나나\n")[1]
-    #         else:
-    #             daydict[day+" 점심"] = "없음"
-    #             daydict[day+" 저녁"] = "없음"
-    #         # weekly_menu[day] = daydict
-        
-    #     return daydict    
-
-    # def necessary_date(self):
-    #     necessary = defaultdict(list)
-    #     today = datetime.today().date() 
-    #     total_weekdays = self.split_lunch_dinner()
-    #     today_year = str(datetime.today().year)
-
-    #     for weekday, menu in total_weekdays.items():
-    #         week = weekday.split(" ")[0]
-    #         week = today_year + "/" + week
-    #         date = datetime.strptime(week, "%Y/%m/%d").date()
-    #         diff = (date - today).days
-
-    #         if diff >= 0 :
-    #             necessary[diff].append({weekday : menu})
-        
-    #     return necessary
-
-
 if __name__ == "__main__":
-    trans = Transformation(file="test")
+    trans = Transformation(file="test18")
     print(trans.split_lunch_dinner())
 
