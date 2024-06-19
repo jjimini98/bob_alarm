@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class ConnectSlack:
     def __init__(self,file):
         self.channel_id = os.getenv("CHANNEL_ID")
-        self.channel_id = os.getenv("TEST_CHANNEL_ID")
+        # self.channel_id = os.getenv("TEST_CHANNEL_ID")
         self.client = WebClient(token=os.environ.get("BOT_TOKEN"))
         self.ocr_result = Transformation(file).split_lunch_dinner()
 
@@ -91,9 +91,7 @@ class ConnectSlack:
 
 if __name__ == "__main__":
     conn = ConnectSlack("test18")
-    
-    conn.alert("06/19")
-    conn.alert_lunch_time("06/19")
+
     conn.alert_dinner_time("06/19")
 
     conn.alert("06/20")
