@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from tqdm import tqdm 
 from collections import defaultdict
 from datetime import datetime
+import pymongo
 load_dotenv(verbose=True) 
 
 """
@@ -27,7 +28,7 @@ class Request:
         request_json = {
             'images': [
                 {
-                    'format': 'jpg',
+                    'format': 'png',
                     'name': 'test'
                 }
             ],
@@ -45,7 +46,7 @@ class Request:
         }
 
         response = requests.request("POST", self.API, headers=headers, data = payload, files = files)
-
+        # print(response.text)
         return response.text        
 
     def transform_result(self):
@@ -71,9 +72,25 @@ class Request:
         return "=================CONVERT JSON COMPLETE================="
 
 
+    def load_db(self,filenumber):
+        conn = pymongo.MongoClient(host= "localhost", port=27017)
+        db = conn["menus"]
+        col = db["menu"]
+        with open(f"test_result/test{filenumber}.json", "r") as f: 
+            json_data = json.load(f)
+            for _,v in json_data.items():
+                new_json = {} 
+                v = v.split("\n")
+                new_json[v[0]] = ' '.join(v[1:])
+                x = col.insert_one(new_json)
+                print(x)
+            
+    
 
 
 if __name__ == "__main__":
-    ocr = Request("test_image/test18.png")
-    ocr.convert_json("test18")
+    # 테스트 이미지 수 만큼 반복문 돌리기 
+        ocr = Request(f"test_image/test21.png")
+        ocr.convert_json(f"test21")
+        ocr.load_db("21")
     
