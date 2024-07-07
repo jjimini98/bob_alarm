@@ -51,6 +51,6 @@ class Transformation:
 
 
 if __name__ == "__main__":
-    trans = Transformation(file="test18")
+    trans = Transformation(file="test20")
     print(trans.split_lunch_dinner())
 
