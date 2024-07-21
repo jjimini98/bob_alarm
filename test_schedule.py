@@ -3,7 +3,7 @@ import logging
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web import WebClient
 
-client = WebClient(token="xoxb-1043508635344-7254887594864-BO0dRkbB65JNiEVICaUbdQFc")
+client = WebClient(token=BOT_TOKEN)
 logger = logging.getLogger(__name__)
 
 # List scheduled messages using latest and oldest timestamps
@@ -40,19 +40,15 @@ if __name__ == "__main__":
 
 # # # WebClient instantiates a client that can call API methods
 # # # When using Bolt, you can use either `app.client` or the `client` passed to listeners.
-# client = WebClient(token="xoxb-1043508635344-7254887594864-BO0dRkbB65JNiEVICaUbdQFc")
 # logger = logging.getLogger(__name__)
 
 # # # The ts of the message you want to delete
 # # message_id = "Q078XLW4EQ0"
 # # # ID of channel that the scheduled message was sent to
-# channel_id = "C076U06K6EB"
-# message_id = ["Q077UAHMK39", "Q07828EAXCN"]
 # try:
 #     # Call the chat.deleteScheduledMessage method using the built-in WebClient
 #     result = client.chat_deleteScheduledMessage(
 #         channel=channel_id,
-#         scheduled_message_id="Q07828EAXCN"
 #     )
 #     # Log the result
 #     logger.info(result)
