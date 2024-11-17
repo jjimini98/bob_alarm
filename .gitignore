@@ -5,4 +5,12 @@
 /test_result
 /refine_result
 /.venv
+/.idea
 __pycache__
+kor2vec/
+side_function/model
+side_function
+refactor/bob_alarm_desktop_credential.json
+refactor/token.pickle
+refactor/service_account_credentials.json
+refactor/bob_alarm
